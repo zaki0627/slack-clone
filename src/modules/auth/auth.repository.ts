@@ -1,6 +1,5 @@
 import api from "../../lib/api";
-import Signin from "../../pages/Signin";
-import { User } from "./users/users.entities";
+import { User } from "./users/user.entity";
 
 export const authRepository = {
   async signup(
