@@ -1,23 +1,59 @@
-import CreateWorkspaceModal from './CreateWorkspaceModal';
-import ProfileModal from './ProfileModal';
+import { useNavigate } from "react-router-dom";
+import { useUiStore } from "../../../modules/ui/ui.state";
+import { WorkspaceRepository } from "../../../modules/workspaces/workspace.repository";
+import CreateWorkspaceModal from "./CreateWorkspaceModal";
+import ProfileModal from "./ProfileModal";
+import type { Workspace } from "../../../modules/workspaces/workspace.entity";
 
-function WorkspaceSelector() {
+interface Props {
+  workspaces: Workspace[];
+  setWorkspaces: (Workspaces: Workspace[]) => void;
+  selectedWorkspaceId: string;
+}
+function WorkspaceSelector(props: Props) {
+  const { workspaces, setWorkspaces, selectedWorkspaceId } = props;
+  const { showCreateWorkspaceModal, setShowCreateWorkspaceModal } =
+    useUiStore();
+  const navigate = useNavigate();
+  const createWorkspace = async (name: string) => {
+    try {
+      const newWorkspace = await WorkspaceRepository.create(name);
+      setShowCreateWorkspaceModal(false);
+      setWorkspaces([...workspaces, newWorkspace]);
+      navigate(`/${newWorkspace.id}/${newWorkspace.channels[0].id}`);
+    } catch (error) {
+      console.log("create workspace failed");
+    }
+  };
   return (
     <div className="workspace-selector">
       <div className="workspaces">
-        <div key={1} className={'workspace-icon'}>
-          A
+        {workspaces.map((workspace) => (
+          <div
+            key={workspace.id}
+            className={`workspace-icon ${
+              selectedWorkspaceId == workspace.id ? "active" : ""
+            }`}
+            onClick={() => {
+              navigate(`/${workspace.id}/${workspace.channels[0].id}`);
+            }}
+          >
+            {workspace.name.charAt(0)}
+          </div>
+        ))}
+
+        <div
+          className="workspace-icon add"
+          onClick={() => setShowCreateWorkspaceModal(true)}
+        >
+          +
         </div>
-        <div key={2} className={'workspace-icon'}>
-          B
-        </div>
-        <div className="workspace-icon add">+</div>
       </div>
       <div className="user-profile">
         <div className={`avatar-img `}>
           <img
             src={
-              'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png'
+              "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png"
             }
             alt="Posted image"
             className="message-image"
@@ -41,7 +77,10 @@ function WorkspaceSelector() {
           </svg>
         </div>
       </div>
-      {/* <CreateWorkspaceModal /> */}
+      {showCreateWorkspaceModal && (
+        <CreateWorkspaceModal onSubmit={createWorkspace} allowCansel={true} />
+      )}
+
       {/* <ProfileModal /> */}
     </div>
   );
