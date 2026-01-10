@@ -7,7 +7,7 @@ import type { Workspace } from "../../../modules/workspaces/workspace.entity";
 
 interface Props {
   workspaces: Workspace[];
-  setWorkspaces: (Workspaces: Workspace[]) => void;
+  setWorkspaces: (workspaces: Workspace[]) => void;
   selectedWorkspaceId: string;
 }
 function WorkspaceSelector(props: Props) {
