@@ -2,7 +2,7 @@ import WorkspaceSelector from "./WorkspaceSelector";
 import "./Home.css";
 import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
-import { userCurrentuserStore } from "../../modules/auth/current-user.status";
+import { userCurrentUserStore } from "../../modules/auth/current-user.status";
 import { Navigate, useParams } from "react-router-dom";
 import { Workspace } from "../../modules/workspaces/workspace.entity";
 import { useEffect, useState } from "react";
@@ -11,7 +11,7 @@ import type { Channel } from "../../modules/channels/channel.entity";
 import { channelRepository } from "../../modules/channels/channel.repository";
 
 function Home() {
-  const { currentUser } = userCurrentuserStore();
+  const { currentUser } = userCurrentUserStore();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const params = useParams();

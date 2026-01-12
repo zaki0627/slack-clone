@@ -4,7 +4,7 @@ export class User {
   id!: string;
   name!: string;
   email!: string;
-  thumnaiUrl?: string;
+  thumbnailUrl?: string;
   workspaceUsers?: WorkspaceUser[];
   constructor(data: User) {
     Object.assign(this, data);
@@ -15,7 +15,7 @@ export class User {
 
   get iconUrl() {
     return (
-      this.thumnaiUrl ||
+      this.thumbnailUrl ||
       "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png"
     );
   }

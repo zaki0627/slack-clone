@@ -4,7 +4,7 @@ import { WorkspaceRepository } from "../../../modules/workspaces/workspace.repos
 import CreateWorkspaceModal from "./CreateWorkspaceModal";
 import ProfileModal from "./ProfileModal";
 import type { Workspace } from "../../../modules/workspaces/workspace.entity";
-import { userCurrentuserStore } from "../../../modules/auth/current-user.status";
+import { userCurrentUserStore } from "../../../modules/auth/current-user.status";
 
 interface Props {
   workspaces: Workspace[];
@@ -13,10 +13,14 @@ interface Props {
 }
 function WorkspaceSelector(props: Props) {
   const { workspaces, setWorkspaces, selectedWorkspaceId } = props;
-  const { showCreateWorkspaceModal, setShowCreateWorkspaceModal } =
-    useUiStore();
+  const {
+    showCreateWorkspaceModal,
+    setShowCreateWorkspaceModal,
+    showProfileModal,
+    setShowProfileModal,
+  } = useUiStore();
   const navigate = useNavigate();
-  const { setCurrentUser } = userCurrentuserStore();
+  const { currentUser, setCurrentUser } = userCurrentUserStore();
 
   const createWorkspace = async (name: string) => {
     try {
@@ -58,11 +62,12 @@ function WorkspaceSelector(props: Props) {
         </div>
       </div>
       <div className="user-profile">
-        <div className={`avatar-img `}>
+        <div
+          className={`avatar-img `}
+          onClick={() => setShowProfileModal(true)}
+        >
           <img
-            src={
-              "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png"
-            }
+            src={currentUser!.iconUrl}
             alt="Posted image"
             className="message-image"
           />
@@ -88,8 +93,7 @@ function WorkspaceSelector(props: Props) {
       {showCreateWorkspaceModal && (
         <CreateWorkspaceModal onSubmit={createWorkspace} allowCansel={true} />
       )}
-
-      {/* <ProfileModal /> */}
+      {showProfileModal && <ProfileModal />}
     </div>
   );
 }

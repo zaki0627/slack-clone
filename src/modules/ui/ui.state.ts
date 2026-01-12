@@ -3,6 +3,8 @@ import { atom, useAtom } from "jotai";
 const showCreateWorkspaceModalAtom = atom<boolean>(false);
 const showCreateChannelModalAtom = atom<boolean>(false);
 const showUserSerachModalAtom = atom<boolean>(false);
+const showProfileModalAtom = atom<boolean>(false);
+
 export const useUiStore = () => {
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useAtom(
     showCreateWorkspaceModalAtom
@@ -15,6 +17,7 @@ export const useUiStore = () => {
   const [showUserSerachModal, setShowUserSerachModal] = useAtom(
     showUserSerachModalAtom
   );
+  const [showProfileModal, setShowProfileModal] = useAtom(showProfileModalAtom);
   return {
     showCreateWorkspaceModal,
     setShowCreateWorkspaceModal,
@@ -22,5 +25,7 @@ export const useUiStore = () => {
     setShowCreateChannelModal,
     showUserSerachModal,
     setShowUserSerachModal,
+    showProfileModal,
+    setShowProfileModal,
   };
 };

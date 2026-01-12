@@ -2,13 +2,13 @@ import { Link, Navigate } from "react-router-dom";
 import "./auth.css";
 import { useState } from "react";
 import { authRepository } from "../../modules/auth/auth.repository";
-import { userCurrentuserStore } from "../../modules/auth/current-user.status";
+import { userCurrentUserStore } from "../../modules/auth/current-user.status";
 
 function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { currentUser, setCurrentUser } = userCurrentuserStore();
+  const { currentUser, setCurrentUser } = userCurrentUserStore();
 
   const signup = async () => {
     if (name == "" || email == "" || password == "") return;
