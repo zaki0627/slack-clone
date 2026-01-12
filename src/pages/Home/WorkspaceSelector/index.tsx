@@ -4,6 +4,7 @@ import { WorkspaceRepository } from "../../../modules/workspaces/workspace.repos
 import CreateWorkspaceModal from "./CreateWorkspaceModal";
 import ProfileModal from "./ProfileModal";
 import type { Workspace } from "../../../modules/workspaces/workspace.entity";
+import { userCurrentuserStore } from "../../../modules/auth/current-user.status";
 
 interface Props {
   workspaces: Workspace[];
@@ -15,6 +16,8 @@ function WorkspaceSelector(props: Props) {
   const { showCreateWorkspaceModal, setShowCreateWorkspaceModal } =
     useUiStore();
   const navigate = useNavigate();
+  const { setCurrentUser } = userCurrentuserStore();
+
   const createWorkspace = async (name: string) => {
     try {
       const newWorkspace = await WorkspaceRepository.create(name);
@@ -24,6 +27,11 @@ function WorkspaceSelector(props: Props) {
     } catch (error) {
       console.log("create workspace failed");
     }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setCurrentUser(undefined);
   };
   return (
     <div className="workspace-selector">
@@ -59,7 +67,7 @@ function WorkspaceSelector(props: Props) {
             className="message-image"
           />
         </div>
-        <div className="logout-button" title="ログアウト">
+        <div className="logout-button" title="ログアウト" onClick={logout}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"

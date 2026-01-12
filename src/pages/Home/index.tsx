@@ -43,7 +43,7 @@ function Home() {
       console.log("channels find error", error);
     }
   };
-  if (currentUser == null) return <Navigate to="signin" />;
+  if (currentUser == null) return <Navigate to="/signin" />;
   return (
     <div className="slack-container">
       <WorkspaceSelector
