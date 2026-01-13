@@ -1,17 +1,49 @@
 import { useNavigate } from "react-router-dom";
 import type { Channel } from "../../../modules/channels/channel.entity";
 import { channelRepository } from "../../../modules/channels/channel.repository";
+import { useRef, useState } from "react";
+import { messageRepository } from "../../../modules/messages/message.repository";
+import type { Message } from "../../../modules/messages/message.entity";
+import { userCurrentUserStore } from "../../../modules/auth/current-user.status";
 
 interface Props {
   selectedchannel: Channel;
   channels: Channel[];
   setChannels: (channels: Channel[]) => void;
   selectedWorkspaceId: string;
+  messages: Message[];
+  setMessages: (messages: Message[]) => void;
 }
 
 function MainContent(props: Props) {
-  const { selectedchannel, channels, setChannels, selectedWorkspaceId } = props;
+  const {
+    selectedchannel,
+    channels,
+    setChannels,
+    selectedWorkspaceId,
+    messages,
+    setMessages,
+  } = props;
   const navigate = useNavigate();
+  const [content, setContent] = useState("");
+  const { currentUser } = userCurrentUserStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const groupMessageByDate = () => {
+    const messageMap = new Map<string, Message[]>();
+    messages.forEach((message) => {
+      const dateKey = message.dateString;
+      if (!messageMap.has(dateKey)) {
+        messageMap.set(dateKey, []);
+      }
+      messageMap.get(dateKey)!.push(message);
+    });
+    return Array.from(messageMap.entries()).map(([date, messages]) => ({
+      date,
+      messages,
+    }));
+  };
+  const messageGroups = groupMessageByDate();
 
   const deleteChannel = async () => {
     try {
@@ -30,6 +62,47 @@ function MainContent(props: Props) {
     }
   };
 
+  const createMessage = async () => {
+    try {
+      const newMessage = await messageRepository.create(
+        selectedWorkspaceId,
+        selectedchannel.id,
+        content
+      );
+      console.log(newMessage);
+      setMessages([newMessage, ...messages]);
+      setContent("");
+    } catch (error) {
+      console.log("create message error", error);
+    }
+  };
+
+  const uploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (event?.target.files == null || event.target.files[0] == null) return;
+      const file = event.target.files[0];
+      const newMessage = await messageRepository.uploadImage(
+        selectedWorkspaceId,
+        selectedchannel.id,
+        file
+      );
+      console.log(newMessage);
+      setMessages([newMessage, ...messages]);
+    } catch (error) {
+      console.log("file upload error", error);
+    }
+  };
+
+  const deleteMessage = async (message: Message) => {
+    const confirmed = window.confirm("本当に削除しますか？");
+    if (!confirmed) return;
+    try {
+      await messageRepository.delete(message.id);
+      setMessages(messages.filter((msg) => message.id !== msg.id));
+    } catch (error) {
+      console.log("message delete error", error);
+    }
+  };
   return (
     <div className="main-content">
       <header className="channel-header">
@@ -52,54 +125,90 @@ function MainContent(props: Props) {
         className="messages-container"
         style={{ overflowY: "auto", maxHeight: "calc(100vh - 150px)" }}
       >
-        <div
-          key={1}
-          style={{ display: "flex", flexDirection: "column-reverse" }}
-        >
-          <div key={1} className="message">
-            <div className="avatar">
-              <div className={`avatar-img `}>
-                <img
-                  src={
-                    "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png"
-                  }
-                  alt="Posted image"
-                  className="message-image"
-                />
-              </div>
-            </div>
-            <div className="message-content">
-              <div className="message-header">
-                <span className="username">{"test"}</span>
-                <span className="timestamp">{"2025/05/11 12:23"}</span>
-                <button
-                  className="message-delete-button"
-                  title="メッセージを削除"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                  >
-                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                  </svg>
-                </button>
-              </div>
-              <div className="message-text">{"test"}</div>
+        {messageGroups.map((group, groupIndex) => (
+          <div
+            key={groupIndex}
+            style={{ display: "flex", flexDirection: "column-reverse" }}
+          >
+            {group.messages.map((message) => {
+              const user =
+                message.user.id == currentUser?.id ? currentUser : message.user;
+              return (
+                <div key={message.id} className="message">
+                  <div className="avatar">
+                    <div className={`avatar-img `}>
+                      <img
+                        src={user.iconUrl}
+                        alt="Posted image"
+                        className="message-image"
+                      />
+                    </div>
+                  </div>
+                  <div className="message-content">
+                    <div className="message-header">
+                      <span className="username">{user.name}</span>
+                      <span className="timestamp">
+                        {message.datetimeString}
+                      </span>
+                      {currentUser?.id == message.user.id && (
+                        <button
+                          className="message-delete-button"
+                          title="メッセージを削除"
+                          onClick={() => deleteMessage(message)}
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                          >
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <div className="message-text">{message.content}</div>
+                    {message.imageUrl != null && (
+                      <div className="message-image-container">
+                        <div className="message-image-wrapper">
+                          <img
+                            src={message.imageUrl}
+                            alt="posted-image"
+                            className="msg-image"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="date-divider">
+              <span>{group.date}</span>
             </div>
           </div>
-          <div className="date-divider">
-            <span>{"2025/05/11"}</span>
-          </div>
-        </div>
+        ))}
       </div>
       <div className="message-input-container">
         <div className="message-input-wrapper">
-          <textarea className="message-input" placeholder="Message" />
+          <textarea
+            className="message-input"
+            placeholder="Message"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
           <div className="image-upload">
-            <input type="file" style={{ display: "none" }} accept="image/*" />
-            <button className="action-button">
+            <input
+              type="file"
+              style={{ display: "none" }}
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={uploadImage}
+            />
+            <button
+              className="action-button"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <svg
                 viewBox="0 0 20 20"
                 width="18"
@@ -113,7 +222,7 @@ function MainContent(props: Props) {
                 />
               </svg>
             </button>
-            <button className="action-button">
+            <button className="action-button" onClick={createMessage}>
               <svg
                 viewBox="0 0 20 20"
                 width="18"
